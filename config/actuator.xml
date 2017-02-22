@@ -1,0 +1,39 @@
+<actcuatorServer name="The Dungeon" latitude="40.69694" longitude="-73.9972" >
+	<actuators>
+		<actuator id="1" name="Lamp near the Desk" type="lamp">
+			<actions>
+				<action name="on" function="transmit_code" parameter="1111101111101010110011001"/>
+				<action name="off" function="transmit_code" parameter="1111101111101010110000111"/>
+			</actions>
+		</actuator>
+		<actuator id="2" name="Lamp at the window left" type="lamp">
+			<actions>
+				<action name="on" function="transmit_code" parameter="1111101111101010001111001"/>
+				<action name="off" function="transmit_code" parameter="1111101111101010001100111"/>
+			</actions>
+		</actuator>
+			<actuator id="3" name="Lamp at the window right" type="lamp">
+			<actions>
+				<action name="on" function="transmit_code" parameter="1111101111101000111111001"/>
+				<action name="off" function="transmit_code" parameter="1111101111101000111100111"/>
+			</actions>
+		</actuator>
+			<actuator id="4" name="Switch 1" type="switch">
+			<actions>
+				<action name="on" function="transmit_code" parameter="1111101111100010111111001"/>
+				<action name="off" function="transmit_code" parameter="1111101111100010111100111"/>
+			</actions>
+		</actuator>
+			<actuator id="5" name="Switch 2" type="switch">
+			<actions>
+				<action name="on" function="transmit_code" parameter="1111101111001010111111001"/>
+				<action name="off" function="transmit_code" parameter="1111101111001010111100111"/>
+			</actions>
+		</actuator>
+		<actuator id="6" name="Pi Camera" type="camera">
+			<actions>
+				<action name="picture" function="takepicture" parameter="5"/>
+			</actions>
+		</actuator>
+	</actuators>
+</actcuatorServer>
