@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import web
-import xml.etree.ElementTree as ET
 import time
 import sys
 import RPi.GPIO as GPIO
@@ -8,6 +7,7 @@ import json
 from datetime import timedelta
 from picamera import PiCamera
 from time import sleep
+from util.xmlConfigReader import *
 import datetime
 
 
@@ -20,7 +20,7 @@ class ActionHelper:
 		#which pin on the pi and how many attempts
 		NUM_ATTEMPTS = 10
 		TRANSMIT_PIN = 23
-		
+
 		def transmit_code(self,code):
 			'''Transmit a chosen code string using the GPIO transmitter'''
 			GPIO.setmode(GPIO.BCM)
@@ -43,10 +43,10 @@ class ActionHelper:
 				time.sleep(self.extended_delay)
 			GPIO.cleanup()
 			return None
-		
+
 		def takepicture(self,waitTime):
 			filepath = None
-			try:			
+			try:
 				camera = PiCamera()
 				camera.start_preview()
 				sleep(int(waitTime))
@@ -60,7 +60,7 @@ class ActionHelper:
 			print "picture taken"
 			print filepath
 			return filepath
-		
+
     instance = None
     def __init__(self):
         if not ActionHelper.instance:
@@ -68,45 +68,6 @@ class ActionHelper:
     def __getattr__(self, name):
         return getattr(self.instance, name)
 
-
-class XmlHelper:
-	instance = None	
-	class ____XmlHelper:
-		def __init__(self):
-			print 'parse config file'
-			self.tree = ET.parse('actuator.xml')
-			self.root = self.tree.getroot()
-			print 'parse config file - done'
-			
-		def getRoot(self):	
-			return self.root
-		
-		def getServerInfo(self):
-			return self.root.attrib
-		
-		def getActuator(self,actuatorId):
-			print 'child List'
-			for child in self.root[0]:
-						if(actuatorId == child.attrib.get('id')):
-							print 'found actuator'+ str(child)
-							return child
-			return None
-			
-		def getActuatorAction(self,actuatorId,actionName):
-			resActuator = self.getActuator(actuatorId)
-			if(resActuator is not None):
-					for action in resActuator[0]: #List actions
-						if(actionName == action.attrib.get('name')):
-								print 'found action'+ str(action)
-								return action
-			return None
-
-	def __init__(self):
-		if not XmlHelper.instance:
-			XmlHelper.instance = XmlHelper.____XmlHelper()
-	def __getattr__(self, name):
-		return getattr(self.instance, name)
-		
 
 
 class actuatorAction:
@@ -124,7 +85,7 @@ class actuatorAction:
 				result = func(aA.get('parameter'))
 				output +='"done"'
 				if result != None:
-					output += ',"return":"' + result + '"'	
+					output += ',"return":"' + result + '"'
 			except AttributeError:
 				output +='"config error"'
 		else:
@@ -137,7 +98,7 @@ class listActuator:
 		self.xmlHelperInst = XmlHelper()
 		self.logger = web.ctx.env.get('wsgilog.logger')
 		print self.logger
-	  
+
 	def GET(self):
 		output = '{"actuator":['
 		#self.logger.info('GET child List')
@@ -150,34 +111,34 @@ class listActuator:
 class actuatorActionList:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
-		
+
 	def GET(self,actuatorId):
 		output = '{"actions":['
 		resActuator = self.xmlHelperInst.getActuator(actuatorId)
 		if(resActuator is not None):
 			for action in resActuator[0]: #List actions
 							output += '"'+str(action.get('name')) + '",'
-			output = output[:-1] + "]}" # remove last comma and close up						
+			output = output[:-1] + "]}" # remove last comma and close up
 		return output
-		
+
 class serverInfo:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
-	  
+
 	def GET(self):
 		return json.dumps(self.xmlHelperInst.getServerInfo())
-		
+
 class serverUptime:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
-	  
+
 	def GET(self):
 		with open('/proc/uptime', 'r') as f:
 			uptime_seconds = float(f.readline().split()[0])
 			uptime_string = str(timedelta(seconds = uptime_seconds))
 		return '{ "uptime":"'+uptime_string+'"}'
 
-class resourceHandler:	  
+class resourceHandler:
 	def GET(self,filename):
 		path = './temp/' + filename
 		print path
@@ -200,4 +161,3 @@ if __name__ == '__main__':
 	app = web.application(urls, globals())
 	print 'Start'
 	app.run()
-
