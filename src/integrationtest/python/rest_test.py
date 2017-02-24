@@ -7,7 +7,7 @@ import re
 # Test call basic rest api functionality
 class TestUM:
 
-	url="http://192.168.0.107:8080/"
+	url="http://192.168.0.111:8080/"
 
 	def test_actorOn(self):
 		assert requests.get(self.url+'actuator/action/1/on', data={}, cookies={}).text == '{"result":"done"}'
@@ -16,10 +16,10 @@ class TestUM:
 		assert requests.get(self.url+'actuator/action/1/off', data={}, cookies={}).text == '{"result":"done"}'
 
 	def test_actorActionList(self):
-		assert requests.get(self.url+'actuator/actionList/2', data={}, cookies={}).text == 'actions:[on,off,]'
+		assert requests.get(self.url+'actuator/actionList/2', data={}, cookies={}).text == '{"actions":["on","off"]}'
 
 	def test_actorList(self):
-		result = "actuator:[{'id': '1', 'name': 'Lamp1'},{'id': '2', 'name': 'Lamp2'},{'id': '3', 'name': 'Lamp3'},{'id': '4', 'name': 'Lamp4'},{'id': '5', 'name': 'Lamp5'},]"
+		result = '{"actuator":[{"type": "lamp", "id": "1", "name": "Lamp near the Desk"},{"type": "lamp", "id": "2", "name": "Lamp at the window left"},{"type": "lamp", "id": "3", "name": "Lamp at the window right"},{"type": "switch", "id": "4", "name": "Switch 1"},{"type": "switch", "id": "5", "name": "Switch 2"},{"type": "camera", "id": "6", "name": "Pi Camera"},]}'
 		assert requests.get(self.url+'actuator', data={}, cookies={}).text == result
 
 	def test_actorNotexitAction(self):
@@ -30,7 +30,7 @@ class TestUM:
 
 	def test_serverUptime(self):
 		# '21:47:00.490000' example string
-		p = re.compile('^\d{2}:\d{2}:\d{2}.\d{6}$')
+		p = re.compile('^\d{1,2}:\d{2}:\d{2}.\d{6}$')
 		o = json.loads(requests.get(self.url+'server/uptime', data={}, cookies={}).text)
 		assert p.match(o.get("uptime")) != None
 
