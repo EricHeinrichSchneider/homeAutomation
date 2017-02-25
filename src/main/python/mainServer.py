@@ -8,11 +8,24 @@ from datetime import timedelta
 from picamera import PiCamera
 from time import sleep
 from util.xmlConfigReader import *
+from util.authentication import authenticate
 import datetime
+
+# Decorator methode for Header debugging
+def getHeader():
+	def wrapper(*args, **kwargs):
+		txt = ""
+		for k, v in web.ctx.env.items():
+			txt += ": ".join([k, str(v)]) + "\n"
+		print txt
+		return f(*args, **kwargs)
+
+	return wrapper
+
 
 
 class ActionHelper:
-    class ____ActionHelper:
+	class ____ActionHelper:
 		#delays for the signal, signallength etc..
 		short_delay = 0.00015
 		long_delay = 0.00045
@@ -57,16 +70,16 @@ class ActionHelper:
 			except:
 				filepath = None
 				print "Cemera error"
-			print "picture taken"
-			print filepath
+				print "picture taken"
+				print filepath
 			return filepath
 
-    instance = None
-    def __init__(self):
-        if not ActionHelper.instance:
-            ActionHelper.instance = ActionHelper.____ActionHelper()
-    def __getattr__(self, name):
-        return getattr(self.instance, name)
+	instance = None
+	def __init__(self):
+		if not ActionHelper.instance:
+			ActionHelper.instance = ActionHelper.____ActionHelper()
+	def __getattr__(self, name):
+		return getattr(self.instance, name)
 
 
 
@@ -74,7 +87,8 @@ class actuatorAction:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
 		self.actionHelperInst = ActionHelper()
-	def GET(self,actuatorId,actionName):
+	@authenticate
+	def POST(self,actuatorId,actionName):
 		output = '{"result":'
 		aA = self.xmlHelperInst.getActuatorAction(actuatorId,actionName)
 		if(aA is not None):
@@ -87,7 +101,7 @@ class actuatorAction:
 				if result != None:
 					output += ',"return":"' + result + '"'
 			except AttributeError:
-				output +='"config error"'
+					output +='"config error"'
 		else:
 			output +='"not defined"'
 		output += '}'
@@ -96,23 +110,22 @@ class actuatorAction:
 class listActuator:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
-		self.logger = web.ctx.env.get('wsgilog.logger')
-		print self.logger
 
-	def GET(self):
+	@authenticate
+	def POST(self):
 		output = '{"actuator":['
-		#self.logger.info('GET child List')
 		root = self.xmlHelperInst.getRoot()
 		for child in root[0]:
 					print 'child', child.tag, child.attrib
 					output += str(child.attrib).replace("'",'"') + ','
 		output += ']}'
 		return output
+
 class actuatorActionList:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
-
-	def GET(self,actuatorId):
+	@authenticate
+	def POST(self,actuatorId):
 		output = '{"actions":['
 		resActuator = self.xmlHelperInst.getActuator(actuatorId)
 		if(resActuator is not None):
@@ -124,22 +137,23 @@ class actuatorActionList:
 class serverInfo:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
-
-	def GET(self):
+	@authenticate
+	def POST(self):
 		return json.dumps(self.xmlHelperInst.getServerInfo())
 
 class serverUptime:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
-
-	def GET(self):
+	@authenticate
+	def POST(self):
 		with open('/proc/uptime', 'r') as f:
 			uptime_seconds = float(f.readline().split()[0])
 			uptime_string = str(timedelta(seconds = uptime_seconds))
 		return '{ "uptime":"'+uptime_string+'"}'
 
 class resourceHandler:
-	def GET(self,filename):
+	@authenticate
+	def POST(self,filename):
 		path = './temp/' + filename
 		print path
 		web.header('Content-type','images/jpeg')
@@ -147,7 +161,6 @@ class resourceHandler:
 		web.header('Content-Disposition', 'attachment; filename="' + filename + '"')
 		imageBinary =  open(path, 'rb').read()
 		return imageBinary
-
 
 if __name__ == '__main__':
 	urls = (

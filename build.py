@@ -15,7 +15,7 @@ version = "0.0.1"
 summary = "Server running on a Raspberry PI for Home Automation"
 description = __doc__
 authors = (Author("Eric Schneider", "eric.h.schneider@gmx.de"),)
-url = "https://github.com/pyclectic/pyfix"
+url = "https://github.com/EricHeinrichSchneider/homeAutomationServer.git"
 license = "Apache Software License"
 @init
 def initialize(project):
