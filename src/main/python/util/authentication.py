@@ -1,6 +1,7 @@
 import web
 import xml.etree.ElementTree as ET
 import hashlib
+import logging
 
 # Decorator methode for the anotation authentication
 def authenticate(f):
@@ -31,7 +32,7 @@ class AuthenticationProvider:
 			self.users ={}
 			for child in root:
 				self.users[child.attrib.get('name')] = hashlib.sha224(child.attrib.get('secret')).hexdigest()
-				print child.attrib.get('name') + "--" + self.users[child.attrib.get('name')]
+				logging.debug( child.attrib.get('name') + "--" + self.users[child.attrib.get('name')])
 
 		def authenticate(self,name,secret):
 			if(self.users.has_key(name) and secret == self.users[name] ):

@@ -1,14 +1,15 @@
 import xml.etree.ElementTree as ET
+import logging
 
 class XmlHelper:
 	instance = None
 
 	class ____XmlHelper:
 			def __init__(self):
-				print 'parse config file'
+				logging.debug('parse config file')
 				self.tree = ET.parse('./config/actuator.xml')
 				self.root = self.tree.getroot()
-				print 'parse config file - done'
+				logging.debug('parse config file - done')
 
 			def getRoot(self):
 				return self.root
@@ -17,10 +18,10 @@ class XmlHelper:
 				return self.root.attrib
 
 			def getActuator(self,actuatorId):
-				print 'child List'
+				logging.debug( 'child List')
 				for child in self.root[0]:
 							if(actuatorId == child.attrib.get('id')):
-								print 'found actuator'+ str(child)
+								logging.debug( 'found actuator'+ str(child))
 								return child
 				return None
 
@@ -29,7 +30,7 @@ class XmlHelper:
 				if(resActuator is not None):
 						for action in resActuator[0]: #List actions
 							if(actionName == action.attrib.get('name')):
-									print 'found action'+ str(action)
+									logging.debug( 'found action'+ str(action))
 									return action
 				return None
 

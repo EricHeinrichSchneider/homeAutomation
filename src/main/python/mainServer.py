@@ -10,6 +10,8 @@ from time import sleep
 from util.xmlConfigReader import *
 from util.authentication import authenticate
 import datetime
+import logging
+import logging.config
 
 # Decorator methode for Header debugging
 def getHeader():
@@ -17,7 +19,7 @@ def getHeader():
 		txt = ""
 		for k, v in web.ctx.env.items():
 			txt += ": ".join([k, str(v)]) + "\n"
-		print txt
+		logging.debug( txt)
 		return f(*args, **kwargs)
 
 	return wrapper
@@ -69,9 +71,7 @@ class ActionHelper:
 				camera.close()
 			except:
 				filepath = None
-				print "Cemera error"
-				print "picture taken"
-				print filepath
+				logging.error( "Camera error picture taken" +  filepath)
 			return filepath
 
 	instance = None
@@ -92,9 +92,9 @@ class actuatorAction:
 		output = '{"result":'
 		aA = self.xmlHelperInst.getActuatorAction(actuatorId,actionName)
 		if(aA is not None):
-			print aA.get('function') , aA.get('parameter')
+			logging.debug( aA.get('function') + "-" + aA.get('parameter'))
 			try:
-				print "get function and execute" + aA.get('function') + '  ' + aA.get('parameter');
+				logging.debug( "get function and execute" + aA.get('function') + '  ' + aA.get('parameter'));
 				func = getattr(self.actionHelperInst,aA.get('function'))
 				result = func(aA.get('parameter'))
 				output +='"done"'
@@ -116,7 +116,7 @@ class listActuator:
 		output = '{"actuator":['
 		root = self.xmlHelperInst.getRoot()
 		for child in root[0]:
-					print 'child', child.tag, child.attrib
+					logging.debug( 'child ' +  child.tag + ' - ' + child.attrib)
 					output += str(child.attrib).replace("'",'"') + ','
 		output += ']}'
 		return output
@@ -155,7 +155,7 @@ class resourceHandler:
 	@authenticate
 	def POST(self,filename):
 		path = './temp/' + filename
-		print path
+		logging.debug(path)
 		web.header('Content-type','images/jpeg')
 		web.header('Content-transfer-encoding','binary')
 		web.header('Content-Disposition', 'attachment; filename="' + filename + '"')
@@ -171,6 +171,8 @@ if __name__ == '__main__':
 	'/actuator/action/(.*)/(.*)', 'actuatorAction',
 	'/actuator/actionList/(.*)', 'actuatorActionList'
 	)
+	logging.config.fileConfig("./config/logging.conf")
 	app = web.application(urls, globals())
-	print 'Start'
+	logging.info("Start server")
 	app.run()
+	logging.info("Stop server")
