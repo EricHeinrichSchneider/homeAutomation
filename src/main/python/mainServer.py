@@ -4,7 +4,6 @@ import time
 import sys
 import RPi.GPIO as GPIO
 import json
-from datetime import timedelta
 from picamera import PiCamera
 from time import sleep
 from util.xmlConfigReader import *
@@ -12,6 +11,7 @@ from util.authentication import authenticate
 import datetime
 import logging
 import logging.config
+from util.serverUtil import serverUtil
 
 # Decorator methode for Header debugging
 def getHeader():
@@ -116,7 +116,7 @@ class listActuator:
 		output = '{"actuator":['
 		root = self.xmlHelperInst.getRoot()
 		for child in root[0]:
-					logging.debug( 'child ' +  child.tag + ' - ' + child.attrib)
+					logging.debug( 'child ' +  child.tag + ' - ' + str(child.attrib))
 					output += str(child.attrib).replace("'",'"') + ','
 		output += ']}'
 		return output
@@ -146,9 +146,8 @@ class serverUptime:
 		self.xmlHelperInst = XmlHelper()
 	@authenticate
 	def POST(self):
-		with open('/proc/uptime', 'r') as f:
-			uptime_seconds = float(f.readline().split()[0])
-			uptime_string = str(timedelta(seconds = uptime_seconds))
+		sI = serverUtil()
+		uptime_string = sI.getServerTime()
 		return '{ "uptime":"'+uptime_string+'"}'
 
 class resourceHandler:

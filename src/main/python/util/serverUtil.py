@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-class serverInfo:
+class serverUtil:
 
     def getServerTime(self):
         with open('/proc/uptime', 'r') as f:

@@ -1,11 +1,11 @@
 import unittest
-from util.serverInfo import serverInfo
+from util.serverUtil import serverUtil
 import re
 
 class TestServerInfo(unittest.TestCase):
 
     def setUp(self):
-        self.sI = serverInfo()
+        self.sI = serverUtil()
 
     def test_serverTime(self):
         sTime = self.sI.getServerTime()

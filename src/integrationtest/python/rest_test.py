@@ -31,7 +31,9 @@ class TestUM:
 		assert requests.post(self.url+'server', data={}, cookies={},headers=self.headers).text == '{"latitude": "40.69694", "name": "The Dungeon", "longitude": "-73.9972"}'
 
 	def test_serverUptime(self):
-		# '21:47:00.490000' example string
-		p = re.compile('^\d{1,2}:\d{2}:\d{2}.\d{6}$')
-		o = json.loads(requests.post(self.url+'server/uptime', data={},cookies={},headers=self.headers).text)
+		# '002:21:47:00.490000' example string
+		p = re.compile('^\d{3}:\d{2}:\d{2}:\d{2}.\d{6}$')
+		response = requests.post(self.url+'server/uptime', data={},cookies={},headers=self.headers)
+		print(response.text)
+		o = json.loads(response.text)
 		assert p.match(o.get("uptime")) != None
