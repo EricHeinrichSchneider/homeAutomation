@@ -4,11 +4,11 @@ import types
 
 class XmlHelper:
 	instance = None
+	configPath = './config/actuator.xml'
 
 	class ____XmlHelper:
-			configPath = './config/actuator.xml'
-
-			def __init__(self):
+			def __init__(self,path):
+				self.configPath = path
 				self.root = None
 
 			def loadConfig(self):
@@ -16,13 +16,6 @@ class XmlHelper:
 					logging.debug('parse config file')
 					tree = ET.parse(self.configPath)
 					self.root = tree.getroot()
-
-			def setConfigPath(self,path,reloadConf):
-				if((self.root == None) or (reloadConf == True) ):
-					self.root = None
-					self.configPath = path
-				else:
-					raise Exception("XML file already parsed")
 
 			def getRoot(self):
 				self.loadConfig()
@@ -50,6 +43,7 @@ class XmlHelper:
 
 	def __init__(self):
 		if not XmlHelper.instance:
-			XmlHelper.instance = XmlHelper.____XmlHelper()
+			XmlHelper.instance = XmlHelper.____XmlHelper(XmlHelper.configPath)
+
 	def __getattr__(self, name):
 		return getattr(self.instance, name)
