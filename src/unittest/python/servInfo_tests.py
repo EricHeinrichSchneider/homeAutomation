@@ -9,6 +9,13 @@ class TestServerInfo(unittest.TestCase):
 
     def test_serverTime(self):
         sTime = self.sI.getServerTime()
-        print(sTime)
         p = re.compile('^\d{3}:\d{2}:\d{2}:\d{2}.\d{6}$')
-        assert p.match(sTime) != None
+        #if there is a match object then the value is according to the pattern
+        self.assertIsNotNone(p.match(sTime))
+
+    def test_load(self):
+        result = self.sI.getLoadAvg()
+        # Returned values
+        self.assertIsNotNone(result)
+        # should be 3
+        self.assertEqual(len(result),3)

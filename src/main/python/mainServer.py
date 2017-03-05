@@ -6,12 +6,16 @@ import RPi.GPIO as GPIO
 import json
 from picamera import PiCamera
 from time import sleep
-from util.xmlConfigReader import *
-from util.authentication import authenticate
 import datetime
 import logging
 import logging.config
+
+from util.xmlConfigReader import *
+from util.authentication import authenticate
 from util.serverUtil import serverUtil
+from util.jsonRender import jsonRender
+
+
 
 # Decorator methode for Header debugging
 def getHeader():
@@ -89,7 +93,7 @@ class actuatorAction:
 		self.actionHelperInst = ActionHelper()
 	@authenticate
 	def POST(self,actuatorId,actionName):
-		output = '{"result":'
+		output = None
 		aA = self.xmlHelperInst.getActuatorAction(actuatorId,actionName)
 		if(aA is not None):
 			logging.debug( aA.get('function') + "-" + aA.get('parameter'))
@@ -97,14 +101,15 @@ class actuatorAction:
 				logging.debug( "get function and execute" + aA.get('function') + '  ' + aA.get('parameter'));
 				func = getattr(self.actionHelperInst,aA.get('function'))
 				result = func(aA.get('parameter'))
-				output +='"done"'
 				if result != None:
-					output += ',"return":"' + result + '"'
+					output = jsonRender.renderOK(str(result))
+				else:
+					output = jsonRender.renderOK("")
 			except AttributeError:
-					output +='"config error"'
+					output = jsonRender.renderError("config error")
 		else:
-			output +='"not defined"'
-		output += '}'
+			#Action not found
+			output = jsonRender.renderError("not defined")
 		return output
 
 class listActuator:
@@ -113,26 +118,19 @@ class listActuator:
 
 	@authenticate
 	def POST(self):
-		output = '{"actuator":['
 		root = self.xmlHelperInst.getRoot()
-		for child in root[0]:
-					logging.debug( 'child ' +  child.tag + ' - ' + str(child.attrib))
-					output += str(child.attrib).replace("'",'"') + ','
-		output += ']}'
-		return output
+		return jsonRender.renderActuatorList(root[0])
 
 class actuatorActionList:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
 	@authenticate
 	def POST(self,actuatorId):
-		output = '{"actions":['
+		#get Actuator
 		resActuator = self.xmlHelperInst.getActuator(actuatorId)
-		if(resActuator is not None):
-			for action in resActuator[0]: #List actions
-							output += '"'+str(action.get('name')) + '",'
-			output = output[:-1] + "]}" # remove last comma and close up
-		return output
+		if(resActuator == None):
+			return jsonRender.renderError("Actuator not found")
+		return jsonRender.renderActionList(resActuator[0])
 
 class serverInfo:
 	def __init__(self):
@@ -148,7 +146,7 @@ class serverUptime:
 	def POST(self):
 		sI = serverUtil()
 		uptime_string = sI.getServerTime()
-		return '{ "uptime":"'+uptime_string+'"}'
+		return jsonRender.renderUptime(uptime_string)
 
 class resourceHandler:
 	@authenticate

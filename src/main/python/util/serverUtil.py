@@ -1,7 +1,7 @@
 from datetime import timedelta
+import os
 
 class serverUtil:
-
     def getServerTime(self):
         with open('/proc/uptime', 'r') as f:
             uptime_seconds = float(f.readline().split()[0])
@@ -13,3 +13,11 @@ class serverUtil:
             retString += str(delta.microseconds)
             return retString
         return None
+
+    def getLoadAvg(self):
+        sysload = None
+        try:
+            sysload = os.getloadavg()
+        except OSError as e:
+            sysload = None
+        return sysload
