@@ -1,6 +1,6 @@
 import logging
 
-class jsonRender:
+class JsonRender:
     @staticmethod
     def renderActionList(actuator):
         output = '{"actions":['
@@ -25,7 +25,7 @@ class jsonRender:
     def renderActuatorList(actuatorList):
         output = '{"actuator":['
         for child in actuatorList:
-            logging.debug( 'child ' +  child.tag + ' - ' + str(child.attrib))
-            output += str(child.attrib).replace("'",'"') + ','
+    			logging.debug( 'child ' +  child.tag + ' - ' + str(child.attrib))
+    			output += str(child.attrib).replace("'",'"') + ','
         output += ']}'
         return output

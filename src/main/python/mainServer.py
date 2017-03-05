@@ -2,18 +2,16 @@
 import web
 import time
 import sys
-import RPi.GPIO as GPIO
 import json
-from picamera import PiCamera
-from time import sleep
-import datetime
 import logging
 import logging.config
 
 from util.xmlConfigReader import *
 from util.authentication import authenticate
 from util.serverUtil import serverUtil
-from util.jsonRender import jsonRender
+from util.jsonRender import JsonRender
+from util.gpioUtil import GPIOUtil
+from util.cameraUtil import CameraUtil
 
 
 
@@ -32,51 +30,19 @@ def getHeader():
 
 class ActionHelper:
 	class ____ActionHelper:
-		#delays for the signal, signallength etc..
-		short_delay = 0.00015
-		long_delay = 0.00045
-		extended_delay = 0.0047
-		#which pin on the pi and how many attempts
-		NUM_ATTEMPTS = 10
 		TRANSMIT_PIN = 23
+		def __init__(self):
+			self.gpioUtil=GPIOUtil()
+			self.cUtil=CameraUtil()
 
-		def transmit_code(self,code):
-			'''Transmit a chosen code string using the GPIO transmitter'''
-			GPIO.setmode(GPIO.BCM)
-			GPIO.setup(self.TRANSMIT_PIN,GPIO.OUT)
-			for t in range(self.NUM_ATTEMPTS):
-				for i in code:
-					if i == '1':
-						GPIO.output(self.TRANSMIT_PIN, 1)
-						time.sleep(self.short_delay)
-						GPIO.output(self.TRANSMIT_PIN, 0)
-						time.sleep(self.long_delay)
-					elif i == '0':
-						GPIO.output(self.TRANSMIT_PIN, 1)
-						time.sleep(self.long_delay)
-						GPIO.output(self.TRANSMIT_PIN, 0)
-						time.sleep(self.short_delay)
-					else:
-						continue
-				GPIO.output(self.TRANSMIT_PIN, 0)
-				time.sleep(self.extended_delay)
-			GPIO.cleanup()
+		def actionDummy(self,para1):
 			return None
 
+		def transmit_code(self,code):
+			return self.gpioUtil.transmit_code(self.TRANSMIT_PIN,code)
+
 		def takepicture(self,waitTime):
-			filepath = None
-			try:
-				camera = PiCamera()
-				camera.start_preview()
-				sleep(int(waitTime))
-				filepath = 'pic_' +  '{:%Y%m%d_%H%M%S}'.format(datetime.datetime.now()) +'.jpg'
-				camera.capture('./temp/' + filepath)
-				camera.stop_preview()
-				camera.close()
-			except:
-				filepath = None
-				logging.error( "Camera error picture taken" +  filepath)
-			return filepath
+			return self.cUtil.takePicture(waitTime)
 
 	instance = None
 	def __init__(self):
@@ -98,18 +64,20 @@ class actuatorAction:
 		if(aA is not None):
 			logging.debug( aA.get('function') + "-" + aA.get('parameter'))
 			try:
-				logging.debug( "get function and execute" + aA.get('function') + '  ' + aA.get('parameter'));
+				logging.debug( "get function and execute " + aA.get('function') + '  ' + aA.get('parameter'));
 				func = getattr(self.actionHelperInst,aA.get('function'))
 				result = func(aA.get('parameter'))
 				if result != None:
-					output = jsonRender.renderOK(str(result))
+					output = JsonRender.renderOK(str(result))
 				else:
-					output = jsonRender.renderOK("")
-			except AttributeError:
-					output = jsonRender.renderError("config error")
+					output = JsonRender.renderOK("")
+			except AttributeError, err:
+					logging.debug(err)
+					output = JsonRender.renderError("config error")
 		else:
 			#Action not found
-			output = jsonRender.renderError("not defined")
+			output = JsonRender.renderError("not defined")
+		logging.debug(output)
 		return output
 
 class listActuator:
@@ -119,7 +87,7 @@ class listActuator:
 	@authenticate
 	def POST(self):
 		root = self.xmlHelperInst.getRoot()
-		return jsonRender.renderActuatorList(root[0])
+		return JsonRender.renderActuatorList(root[0])
 
 class actuatorActionList:
 	def __init__(self):
@@ -129,8 +97,8 @@ class actuatorActionList:
 		#get Actuator
 		resActuator = self.xmlHelperInst.getActuator(actuatorId)
 		if(resActuator == None):
-			return jsonRender.renderError("Actuator not found")
-		return jsonRender.renderActionList(resActuator[0])
+			return JsonRender.renderError("Actuator not found")
+		return JsonRender.renderActionList(resActuator[0])
 
 class serverInfo:
 	def __init__(self):
@@ -146,7 +114,7 @@ class serverUptime:
 	def POST(self):
 		sI = serverUtil()
 		uptime_string = sI.getServerTime()
-		return jsonRender.renderUptime(uptime_string)
+		return JsonRender.renderUptime(uptime_string)
 
 class resourceHandler:
 	@authenticate
@@ -172,4 +140,8 @@ if __name__ == '__main__':
 	app = web.application(urls, globals())
 	logging.info("Start server")
 	app.run()
+
+	#Clean ups
+
+	GPIOUtil().cleanUP()
 	logging.info("Stop server")
