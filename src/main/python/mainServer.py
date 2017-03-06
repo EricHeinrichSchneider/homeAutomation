@@ -59,7 +59,7 @@ class actuatorAction:
 		self.xmlHelperInst = XmlHelper()
 		self.actionHelperInst = ActionHelper()
 	@authenticate
-	def POST(self,actuatorId,actionName):
+	def PUT(self,actuatorId,actionName):
 		output = None
 		aA = self.xmlHelperInst.getActuatorAction(actuatorId,actionName)
 		if(aA is not None):
@@ -86,7 +86,7 @@ class listActuator:
 		self.xmlHelperInst = XmlHelper()
 
 	@authenticate
-	def POST(self):
+	def GET(self):
 		root = self.xmlHelperInst.getRoot()
 		return JsonRender.renderActuatorList(root[0])
 
@@ -94,7 +94,7 @@ class actuatorActionList:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
 	@authenticate
-	def POST(self,actuatorId):
+	def GET(self,actuatorId):
 		#get Actuator
 		resActuator = self.xmlHelperInst.getActuator(actuatorId)
 		if(resActuator == None):
@@ -105,21 +105,21 @@ class serverInfo:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
 	@authenticate
-	def POST(self):
+	def GET(self):
 		return json.dumps(self.xmlHelperInst.getServerInfo())
 
 class serverUptime:
 	def __init__(self):
 		self.xmlHelperInst = XmlHelper()
 	@authenticate
-	def POST(self):
+	def GET(self):
 		sI = serverUtil()
 		uptime_string = sI.getServerTime()
 		return JsonRender.renderUptime(uptime_string)
 
 class resourceHandler:
 	@authenticate
-	def POST(self,filename):
+	def GET(self,filename):
 		path = './temp/' + filename
 		logging.debug(path)
 		web.header('Content-type','images/jpeg')
@@ -131,11 +131,11 @@ class resourceHandler:
 if __name__ == '__main__':
 	urls = (
 	'/server', 'serverInfo',
-	'/server/getResource/(.*)', 'resourceHandler',
+	'/server/resource/(.*)', 'resourceHandler',
 	'/server/uptime', 'serverUptime',
 	'/actuator', 'listActuator',
-	'/actuator/action/(.*)/(.*)', 'actuatorAction',
-	'/actuator/actionList/(.*)', 'actuatorActionList'
+	'/actuator/(.*)/action/(.*)', 'actuatorAction',
+	'/actuator/(.*)/action', 'actuatorActionList'
 	)
 	logging.config.fileConfig("./config/logging.conf")
 	app = web.application(urls, globals())
