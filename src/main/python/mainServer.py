@@ -12,6 +12,7 @@ from util.serverUtil import serverUtil
 from util.jsonRender import JsonRender
 from util.gpioUtil import GPIOUtil
 from util.cameraUtil import CameraUtil
+from util.motionSensor import MotionSensor
 
 
 
@@ -139,6 +140,11 @@ if __name__ == '__main__':
 	logging.config.fileConfig("./config/logging.conf")
 	app = web.application(urls, globals())
 	logging.info("Start server")
+	# Add motion sensor
+	ms = MotionSensor()
+	ms.setPin(17)
+	# run
+	ms.initSensor()
 	app.run()
 
 	#Clean ups

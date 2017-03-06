@@ -14,7 +14,7 @@ class GPIOUtil:
         NUM_ATTEMPTS = 10
 
         def __init__(self):
-            GPIO.setwarnings(False) #TODO remove - check way it comes to error
+            GPIO.setwarnings(False) #TODO remove - check why it comes to error
             GPIO.setmode(GPIO.BCM)
 
         def transmit_code(self,transmptPin,code):
@@ -39,13 +39,13 @@ class GPIOUtil:
             	time.sleep(self.extended_delay)
             return None
 
-        def addEvent(pin,edge,callBack):
+        def addEvent(self,pin,edge,callBack):
             logging.debug("add Event" + str(pin) + " " + str(callBack) )
             GPIO.setup(pin, GPIO.IN, GPIO.PUD_DOWN)
             GPIO.add_event_detect(pin, GPIO.RISING, callback=callBack, bouncetime=300)
 
         @staticmethod
-        def cleanUP(self):
+        def cleanUP():
             GPIO.cleanup()
 
 
